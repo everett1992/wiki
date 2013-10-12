@@ -5,3 +5,21 @@
 #
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
+
+titles = ['Hitler', 'WWII', 'Tupac']
+
+titles.each do |title|
+  puts "Creating #{title}"
+  Page.create({title: title})
+end
+
+Page.all.each do |from|
+  Page.all.each do |to|
+    puts "linking #{from.title} to #{to.title}"
+    Link.create({from_id: from.id, to_id: to.id}) if from != to
+  end
+end
+
+puts "#{Page.count} pages"
+puts " #{Link.count} links"
+
