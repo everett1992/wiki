@@ -14,10 +14,8 @@
 ActiveRecord::Schema.define(version: 20131012192213) do
 
   create_table "links", force: true do |t|
-    t.integer  "from_id"
-    t.integer  "to_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.integer "from_id"
+    t.integer "to_id"
   end
 
   create_table "pages", force: true do |t|
