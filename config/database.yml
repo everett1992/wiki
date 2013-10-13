@@ -19,7 +19,10 @@ test:
   timeout: 5000
 
 production:
-  adapter: sqlite3
-  database: db/production.sqlite3
-  pool: 5
-  timeout: 5000
+  adapter: mysql2
+  encoding: utf8
+  database: wiki
+  username: wiki
+  password: wikiwiki
+  host: wiki.crax2aulp4rd.us-east-1.rds.amazonaws.com:3306
+  port: 3306
