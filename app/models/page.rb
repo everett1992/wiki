@@ -30,7 +30,6 @@ class Page < ActiveRecord::Base
       return [self]
     else
       children = self.links.map do |link|
-        p link.to
         link.to.nearest(n-1)
       end
       return children.flatten(1).push(self)
