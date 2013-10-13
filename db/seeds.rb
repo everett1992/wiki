@@ -24,25 +24,29 @@
 file =File.new("db/enwiki-latest-pagelinks.sql","r")
 38.times { file.gets } # skip the first 49 lines
 
+page_ids = Page.all.map(&:id)
+
 line = file.gets
 line[0..line.index(' (')] = ''
 n = 0
+i = 0
 while(n < 10_000)
-	n += 1
+	puts i if i % 100 == 0
+	i += 1
 	match = line.match /\(([0-9]*),[0-9]*,'(.*)'\)[,;]$/
-	id, title = match[1], match[2]
+	from_id, title = match[1], match[2]
 	
 	begin
-		to_id=Page.find_by_title(title).id
-		from_id=Page.find_by_id(id).id
-		link = Link.create(to_id: to_id, from_id: id)
-		if link.valid?
-			link.save
-		else
-			n -= 1
+		to_id = Page.find_by_title(title).id
+		if page_ids.include?(to_id) && page_ids.include?(from_id)
+			link = Link.new(to_id: to_id, from_id: id)
+			if link.valid? && from_id.nil? && to_id.nil?
+				link.save
+				puts "new"
+				n += 1
+			end
 		end
 	rescue
-		n -= 1
 	end
 	line = file.gets
 end

@@ -1,4 +1,4 @@
-<div id="chart3"></div>
+<div style="height;100%;width:100%;" id="chart3"></div>
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script SRC ="http://dl.dropboxusercontent.com/u/17949100/jsnetworkx.js"> </script>
 <script SRC ="http://code.jquery.com/jquery-2.0.3.min.js"> </script>
@@ -9,12 +9,10 @@
     $.getJSON('/pages/nearest.json?n=#{params[:n]}&title=#{params[:title]}', function(data) {
       console.log(data)
 
-      var nodes = []
       var edges = []
       $.each(data.pages, function(page) {
         page = data.pages[page]
-        console.log(page.id);
-        nodes.push(page.id);
+        G3.add_nodes_from([page.id], {title: page.title})
       });
 
       $.each(data.links, function(link) {
@@ -22,8 +20,6 @@
         console.log([link.from_id, link.to_id]);
         edges.push([link.from_id, link.to_id]);
       });
-      G3.add_nodes_from(nodes, {group:0});
-
       G3.add_edges_from(edges);
 
       var color = d3.scale.category20();
@@ -31,15 +27,15 @@
           element: '#chart3',
           layout_attr: {
               charge: -120,
-              linkDistance: 20
+              linkDistance: 30
           },
           node_attr: {
               r: 5,
-              title: function(d) { return d.label;}
+              title: function(d) { return d.data.title;},
+              label: function(d) { return d.data.title;}
           },
           node_style: {
               fill: function(d) {
-                  console.log(d);
                   return color(d.data.group); 
               },
               stroke: 'none'

@@ -26,13 +26,17 @@ class Page < ActiveRecord::Base
 
   # Add n generations of pages
   def nearest(n)
-    if n == 1
-      return [self]
-    else
-      children = self.links.map do |link|
-        link.to.nearest(n-1)
+    new_stack = [self]
+    stack = []
+    n.times do 
+      next_stack = []
+      while(page = new_stack.pop)
+        next if stack.include? page
+        stack.push(page)
+	page.links.map(&:to).each { |a| next_stack.push a }
       end
-      return children.flatten(1).push(self)
+      new_stack = next_stack
     end
+    return stack
   end
 end
