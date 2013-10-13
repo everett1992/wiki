@@ -1,0 +1,504 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<link rel="stylesheet" href="pureWIKI.css">
+	<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
+	<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <script type="text/javascript" src="JS/d3.js"></script>
+    <script type="text/javascript" src="JS/d3.layout.js"></script>
+	<script type="text/javascript" src="JS/json2.js"></script>
+	<script src="JS/jquery-latest.js"></script>
+	<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <style type="text/css">
+	.node circle {
+	  cursor: pointer;
+	  fill: #fff;
+	  stroke: steelblue;
+	  stroke-width: 1.5px;
+	}
+
+	.node text {
+	  font-size: 11px;
+	  
+	}
+
+	path.link {
+	  fill: none;
+	  stroke: #ccc;
+	  stroke-width: 1.5px;
+	}
+	
+	#chart, #header, #footer {
+	  position: absolute;
+	  top: 0;
+	}
+
+	#header, #footer {
+	  z-index: 1;
+	  display: block;
+	  font-size: 36px;
+	  font-weight: 300;
+	  text-shadow: 0 1px 0 #fff;
+	}
+	
+	#footer {
+	  top: 680px;
+	  right: 140px;
+	  text-align: right;
+	}
+
+
+	  .ui-autocomplete {
+		max-height: 150px;
+		overflow-y: auto;
+		/* prevent horizontal scrollbar */
+		overflow-x: hidden;
+	  }
+	  /* IE 6 doesn't support max-height
+	   * we use height instead, but this forces the menu to always be this tall
+	   */
+	  * html .ui-autocomplete {
+		height: 150px;
+	  }
+ 
+    </style>
+	<script>
+	function loadXMLDoc()
+	{
+	
+		$('#row').remove();
+		//Create footer and graph elements.
+		
+		var row = document.createElement('div');
+		row.id = 'row';
+		row.className = 'row-fluid';
+		document.getElementsByTagName('body')[0].appendChild(row);
+		
+		var graph = document.createElement('div');
+		graph.id = 'graph';
+		graph.className = 'span9';
+		document.getElementById('row').appendChild(graph);
+	
+		var footer = document.createElement('div');
+		footer.id = 'footer';
+		footer.className = 'span3';
+		document.getElementById('row').appendChild(footer);
+		
+		var link = document.createElement('a');
+		link.id = "goBack";
+		link.innerHTML = "GO BACK";
+		document.getElementById('footer').appendChild(link);
+		
+		//Download JSON data from server.
+		
+		var xmlhttp;
+		if (window.XMLHttpRequest)
+		  {// code for IE7+, Firefox, Chrome, Opera, Safari
+		  xmlhttp=new XMLHttpRequest();
+		  }
+		else
+		  {// code for IE6, IE5
+		  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+		  }
+		xmlhttp.onreadystatechange=function()
+		  {
+		  if (xmlhttp.readyState==4 && xmlhttp.status==200)
+			{
+				console.log("Data ready!");
+				drawGraph(xmlhttp.responseText);
+				
+				//Scroll down page to graph.
+				var $root = $('html, body');
+				$root.animate({
+					scrollTop: $('#graph').offset().top
+				}, 500, function () {
+					window.location.hash = $('#graph');
+				});
+			}
+		  }
+		xmlhttp.open("GET","http://ec2-54-225-15-65.compute-1.amazonaws.com:3000/pages/nearest.json?n=10&title=" + $('#FROM').val(),true);
+		xmlhttp.send();
+		
+		
+		var $root = $('html, body');		
+		//If "go back" is clicked, scroll up.
+		$('#goBack').click(function() {
+			$root.animate({
+				scrollTop: $('#heroTitle').offset().top
+			}, 500, function () {
+				window.location.hash = $('#heroTitle');
+				$('#row').remove();
+			});
+		});
+		
+		}
+		
+		function drawGraph(response)
+				{
+					var wheresDad = new Array();
+					var toggleMEbitch = false;
+					var breakout = false;
+					var count = 0;
+						
+					var m = [20, 150, 20, 150],
+						w = 1280 - m[1] - m[3],
+						h = 600 - m[0] - m[2],
+						i = 0
+						;
+
+					var tree = d3.layout.tree()
+						.size([h, w]);
+
+					var diagonal = d3.svg.diagonal()
+						.projection(function(d) { return [d.y, d.x]; });
+
+					var vis = d3.select("#graph").append("svg:svg")
+						.attr("width", w + m[1] + m[3])
+						.attr("height", h + m[0] + m[2])
+					  .append("svg:g")
+						.attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+
+						
+					var linksURL = "link.json";
+					var pageURL = "page.json";
+					var near = "nearest.json";
+
+					var toWord = $('#TO').val();
+					var fromWord = $('#FROM').val();
+					
+					var isRootWeighted = false;
+					var isRootSized = false;
+					
+					if(fromWord.length > 8)
+					{
+						fromWord = fromWord.substring(0, 7);
+						fromWord = fromWord  + "...";
+					}
+
+					var res = "";
+					var root = new Object();
+					var page;
+					var link;
+					//$.getJSON(pageURL).done(function(data)
+					//{
+					//	page = data;
+						//console.log(result[0]);
+					//});
+
+
+					var data = $.parseJSON(response);
+					
+						page = data.pages;
+						link = data.links;
+						
+						console.log(link);
+						
+						
+						
+						root.name = fromWord;
+						root.children = new Array();
+						
+						for(var i = 0; i < link.length; i++)
+						{
+							//var current = i;
+							var id = new Object();
+							
+							var origID = link[i].from_id;
+							var result = $.grep(page, function(e){ return e.id == link[i].from_id; });
+
+							id.name = result[0].title;
+							id.children = new Array();
+							
+							var resultTO = $.grep(page, function(e){ return e.id == link[i].to_id; });
+							
+							var to1 = new Object();
+							to1.name = resultTO[0].title;
+							id.children.push(to1);
+							
+							
+							while(i+1 < link.length && origID == link[i+1].from_id)
+							{
+								var resultNEXT = $.grep(page, function(e){ return e.id == link[i+1].to_id; });
+
+								var to = new Object();
+								to.name = resultNEXT[0].title;
+								id.children.push(to);
+								i++;
+							}
+							
+							root.children.push(id);
+							//rootID.children.push(uniqueFROM);
+						}
+						
+						console.log(root);
+						//res = JSON.stringify(rootID);
+						//console.log(res);
+						
+						
+						
+						
+						
+					//d3.json("flare.json", function(json) {
+					 // console.log(json);
+					  //var root = rootID;
+					  root.x0 = h / 2;
+					  root.y0 = 0;
+					  root.bold = false;
+
+					 
+					  // Initialize the display to show a few nodes.
+					  //root.children.forEach(hide);
+					  hide(root);
+					  console.log(root);
+					  //toggle(root);
+					  
+					  
+						turnOn(root);
+					  console.log(root);
+					  //toggle(root.children[1]);
+					//  toggle(root.children[1].children[2]);
+					 // toggle(root.children[9]);
+					//  toggle(root.children[9].children[0]);
+
+					  update(root);
+					//});
+						
+					 function toggleAll(d) {
+						if( d != null && d.name == toWord && breakout == false )
+						{
+							breakout = true;
+							d.bold = true;
+							count++;
+							//console.log(count + " " + breakout);
+						}
+						if ( d != null && d._children && breakout == false) {
+						 // console.log(d._children);
+						 // console.log(include(d.children, "MergeEdge"));
+						  d._children.forEach(toggleAll);
+						  
+						}
+					  }
+					  
+					  function include(arr,obj) {
+						return (arr.indexOf(obj) != -1);
+					}
+
+					  function hide(d) {
+						if (d.children) {
+						  d.children.forEach(hide);
+						  toggle(d);
+						}
+					  }
+
+					  function turnOn(d)
+					{
+						toggleAll(d)
+						if(breakout == true && d != null)
+						{
+							toggle(d);
+							breakout = false;
+							if(d.children)
+								d.children.forEach(turnOn);
+						}
+					}
+
+
+					function logchild(d)
+					{	
+						if(d.name == "MergeEdge")
+						{
+							toggleMEbitch = true;
+							//console.log(d)
+						}
+						else toggleMEbitch = false;
+					}
+
+					function update(source) {
+					  var duration = d3.event && d3.event.altKey ? 5000 : 1500;
+
+					  // Compute the new tree layout.
+					  var nodes = tree.nodes(root);
+
+					  // Normalize for fixed-depth.
+					  nodes.forEach(function(d) { d.y = d.depth * 180; });
+
+					  // Update the nodes…
+					  var node = vis.selectAll("g.node")
+						  .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+					  // Enter any new nodes at the parent's previous position.
+					  var nodeEnter = node.enter().append("svg:g")
+						  .attr("class", "node")
+						  .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+						  .on("click", function(d) { toggle(d); update(d); });
+
+					  nodeEnter.append("svg:circle")
+						  .attr("r", 1e-6)
+						  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+							  nodeEnter.append("svg:text")
+							  .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+							  .attr("dy", ".35em")
+							  .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+							  .text(function(d) {return d.name; } )
+							  .style("fill-opacity", 1e-6)
+							  .style("font-weight", function(d) { 
+								var poop;
+								if(d.name == fromWord)
+									if (!isRootWeighted)
+									{
+										poop = "bold";
+										isRootWeighted = true;
+									}
+									else
+										poop = "regular";
+								else if (d.name == toWord)
+									poop = "bold";									
+								return poop; 
+								})
+							  .style("font-size", function(d) { 
+							  
+								  var poop;
+									if(d.name == fromWord)
+										if (!isRootSized)
+										{
+											poop = "25px";
+											isRootSized = true;
+										}
+										else
+											poop = "11px";
+									else if (d.name == toWord)
+										poop = "25px";									
+									return poop; 
+								});
+
+					  // Transition nodes to their new position.
+					  var nodeUpdate = node.transition()
+						  .duration(duration)
+						  .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+					  nodeUpdate.select("circle")
+						  .attr("r", 4.5)
+						  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+					  nodeUpdate.select("text")
+						  .style("fill-opacity", 1);
+
+					  // Transition exiting nodes to the parent's new position.
+					  var nodeExit = node.exit().transition()
+						  .duration(duration)
+						  .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+						  .remove();
+
+					  nodeExit.select("circle")
+						  .attr("r", 1e-6);
+
+					  nodeExit.select("text")
+						  .style("fill-opacity", 1e-6);
+
+					  // Update the links…
+					  var link = vis.selectAll("path.link")
+						  .data(tree.links(nodes), function(d) { return d.target.id; });
+
+					  // Enter any new links at the parent's previous position.
+					  link.enter().insert("svg:path", "g")
+						  .attr("class", "link")
+						  .attr("d", function(d) {
+							var o = {x: source.x0, y: source.y0};
+							return diagonal({source: o, target: o});
+						  })
+						.transition()
+						  .duration(duration)
+						  .attr("d", diagonal);
+
+					  // Transition links to their new position.
+					  link.transition()
+						  .duration(duration)
+						  .attr("d", diagonal);
+
+					  // Transition exiting nodes to the parent's new position.
+					  link.exit().transition()
+						  .duration(duration)
+						  .attr("d", function(d) {
+							var o = {x: source.x, y: source.y};
+							return diagonal({source: o, target: o});
+						  })
+						  .remove();
+
+					  // Stash the old positions for transition.
+					  nodes.forEach(function(d) {
+						d.x0 = d.x;
+						d.y0 = d.y;
+					  });
+					}
+
+					// Toggle children.
+					function toggle(d) {
+					  if (d.children) {
+						d._children = d.children;
+						d.children = null;
+					  } else {
+						d.children = d._children;
+						d._children = null;
+					  }
+					}
+
+				}
+	</script>
+	
+	<script>
+	 $(function() {
+	 
+	var titURL = "titles.json";
+	console.log(titURL);
+	$.getJSON(titURL).done(function(data)
+	{
+		$( "#FROM" ).autocomplete({
+		source: data
+		});
+	});
+	
+	$.getJSON(titURL).done(function(data)
+	{
+		$( "#TO" ).autocomplete({
+		source: data
+		});
+	});
+
+  });
+  </script>
+
+	<title>WikiLinks</title>
+
+</head>
+
+<body>
+
+	<div id="heroTitle" class="hero-unit">
+		<h1>WikiLinks</h1>
+		<h3>WikiLinks is a Wikipedia graphical link analyzer that measures the distance between articles.<h3>
+		
+		
+	</div>
+
+	<center>
+	<input class="input" id="FROM" placeholder="FROM" style="width:600px; height:150px; line-height:90px; font-size:60px;" type="text" />
+
+
+	<span style="font-size:40px; padding-left:20px; padding-right:20px;" class="glyphicon glyphicon-forward"></span>
+
+
+	<input class="input" id="TO" placeholder="TO" style="width:600px; height:150px; line-height:90px; font-size:60px;" type="text" />
+
+	</center>
+
+
+
+	<center><button type="submit" class="btn btn-primary btn-large" onclick="loadXMLDoc()">ANALYZE!</button></center>
+	<br><br><br>
+</body>
+
+</html>
+
+
