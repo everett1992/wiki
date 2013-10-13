@@ -5,7 +5,7 @@
   $(document).ready(function(){
     var G3 = jsnx.Graph();
 
-    $.getJSON('/pages/nearest.json?n=4&title=AccessibleComputing', function(data) {
+    $.getJSON('/pages/nearest.json?n=#{params[:n]}&title=#{params[:title]}', function(data) {
       console.log(data)
 
       var nodes = []
