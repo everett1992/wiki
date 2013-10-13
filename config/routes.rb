@@ -4,7 +4,10 @@ Wiki::Application.routes.draw do
 
   # You can have the root of your site routed with "root"
   root 'application#index'
-  resources :page
+  get 'pages/nearest' => 'page#nearest'
+  get 'pages/limited_closure' => 'page#limited_closure'
+  get 'pages/titles' => 'page#titles'
+  get 'pages/id' => 'page#id'
   resources :link
 
 
