@@ -21,7 +21,7 @@ class PageController < ApplicationController
       format.html
       format.json do
         page = Page.find_by_title params[:title]
-        n = params[:n].to_i || 10
+        n = 3 #params[:n].to_i || 10
         nearest = page.nearest n
         render :json => {:pages => nearest, :links => Page.get_links(nearest) }
       end

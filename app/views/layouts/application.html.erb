@@ -1,10 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Wiki</title>
-  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
-  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
-  <%= csrf_meta_tags %>
+
+<title>WikiLinks</title>
+
+<link rel="stylesheet" href="pureWIKI.css"></link>
+<link rel="stylesheet" href="style.css"></link>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"></link>
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"></link>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script SRC ="http://dl.dropboxusercontent.com/u/17949100/jsnetworkx.js"> </script>
+<script SRC ="http://code.jquery.com/jquery-2.0.3.min.js"> </script>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+<style type="text/css">
+  .node circle {
+    cursor: pointer;
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+  }
+
+  .node text {
+    font-size: 11px;
+    
+  }
+
+  path.link {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 1.5px;
+  }
+  
+  #chart, #header, #footer {
+    position: absolute;
+    top: 0;
+  }
+
+  #header, #footer {
+    z-index: 1;
+    display: block;
+    font-size: 36px;
+    font-weight: 300;
+    text-shadow: 0 1px 0 #fff;
+  }
+  
+  #footer {
+    top: 680px;
+    right: 140px;
+    text-align: right;
+  }
+
+
+  .ui-autocomplete {
+    max-height: 150px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+    }
+    /* IE 6 doesn't support max-height
+     * we use height instead, but this forces the menu to always be this tall
+     */
+    * html .ui-autocomplete {
+    height: 150px;
+    }
+ 
+  </style>
 </head>
 <body>
 

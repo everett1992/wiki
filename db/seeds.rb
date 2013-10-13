@@ -6,48 +6,46 @@
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
 
-#file = File.new("db/enwiki-latest-page.sql", "r")
-#49.times { file.gets } # skip the first 49 lines
+#file = File.new("db/simplewiki-latest-page.sql.bac", "r")
+#14.times { file.gets } # skip the first 49 lines
 #
 #line = file.gets
 #line[0..line.index(' (')-1] = ''
-#10_000.times do
+#begin
 #	match = line.match /\(([0-9]*),[0-9]*,'([^']*)'.*\)[,;]$/
 #	id, title = match[1], match[2]
-#	page = Page.new(id: id ,title: title)
-#	page.save if page.valid?
-#	line = file.gets
-#end
+#	Page.create(id: id ,title: title)
+#end while (line = file.gets)
 #file.close
 #puts "Pages: #{Page.count}"
 
-file =File.new("db/enwiki-latest-pagelinks.sql","r")
-38.times { file.gets } # skip the first 49 lines
+#file =File.new("db/simplewiki-latest-pagelinks.sql","r")
+#38.times { file.gets } # skip the first 49 lines
 
-page_ids = Page.all.map(&:id)
+# backwards
+#file =File.new("db/simplewiki-latest-pagelinks.sql.bac","r")
+#14.times { file.gets } # skip the first 49 lines
+
+# middle
+file =File.new("db/simplewiki-latest-pagelinks.sql","r")
+3000000.times { file.gets } # skip the first 49 lines
+
 
 line = file.gets
-line[0..line.index(' (')] = ''
-n = 0
+#line[0..line.index(' (')] = ''
+
 i = 0
-while(n < 10_000)
-	puts i if i % 100 == 0
+begin
 	i += 1
 	match = line.match /\(([0-9]*),[0-9]*,'(.*)'\)[,;]$/
-	from_id, title = match[1], match[2]
+	id, title = match[1], match[2]
 	
 	begin
-		to_id = Page.find_by_title(title).id
-		if page_ids.include?(to_id) && page_ids.include?(from_id)
-			link = Link.new(to_id: to_id, from_id: id)
-			if link.valid? && from_id.nil? && to_id.nil?
-				link.save
-				puts "new"
-				n += 1
-			end
-		end
+		to_id=Page.find_by_title(title).id
+		from_id=Page.find_by_id(id).id
+		Link.create(to_id: to_id, from_id: from_id)
 	rescue
+	puts "Links: #{Link.count}" if i % 1000 == 0
 	end
-	line = file.gets
-end
+end while (line = file.gets)
 puts "Links: #{Link.count}"
