@@ -20,9 +20,9 @@ test:
 
 production:
   adapter: mysql2
-  encoding: utf8
+  #encoding: utf8
   database: wiki
   username: wiki
   password: wikiwiki
-  host: wiki.crax2aulp4rd.us-east-1.rds.amazonaws.com:3306
+  host: wiki.crax2aulp4rd.us-east-1.rds.amazonaws.com
   port: 3306
