@@ -41,4 +41,4 @@ INSERT INTO `pagelinks` VALUES (10,0,'Anarchism'),
 (12,0,'AfghanistanGeography'),
 (12,0,'AccessibleComputing'),
 (12,0,'AfghanistanMilitary'),
-(12,0,'AfghanistanTransnationalIssues'),
+(12,0,'AfghanistanTransnationalIssues');
