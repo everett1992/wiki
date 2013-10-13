@@ -1,38 +1,51 @@
 <div id="chart3"></div>
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script SRC ="http://dl.dropboxusercontent.com/u/17949100/jsnetworkx.js"> </script>
 :javascript
-  $(document).onload(function(){
+  $(document).ready(function(){
     var G3 = jsnx.Graph();
 
-    G3.add_nodes_from([1,2,3,4,5,6,7,8,9], {group:0});
-    G3.add_nodes_from([10,11,12,13,14,15,16,17,18], {group:1});
-    G3.add_nodes_from([19,20], {group:2});
+    $.getJSON('/pages/nearest.json?n=4&title=AccessibleComputing', function(data) {
+      console.log(data)
 
-    G3.add_path([1,2,3,4,5,6,7,8,9,1]);
-    G3.add_edges_from([[1,10],[2,11],[3,12],[4,13],[5,14],[6,15],[7,16],[8,17],[9,18]]);
-    G3.add_edges_from([[10,11],[11,12],[13,14],[14,15],[16,17],[17,18]]);
-    G3.add_edges_from([[9,19],[12,19],[15,19],[11,20],[14,20],[17,20]]);
+      var nodes = []
+      var edges = []
+      $.each(data.pages, function(page) {
+        page = data.pages[page]
+        console.log(page.id);
+        nodes.push(page.id);
+      });
 
-    var color = d3.scale.category20();
-    jsnx.draw(G3, {
-        element: '#chart3',
-        layout_attr: {
-            charge: -120,
-            linkDistance: 20
-        },
-        node_attr: {
-            r: 5,
-            title: function(d) { return d.label;}
-        },
-        node_style: {
-            fill: function(d) {
-                console.log(d);
-                return color(d.data.group); 
-            },
-            stroke: 'none'
-        },
-        edge_style: {
-            stroke: '#999'
-        }
-    }, true);
+      $.each(data.links, function(link) {
+        link = data.links[link]
+        console.log([link.from_id, link.to_id]);
+        edges.push([link.from_id, link.to_id]);
+      });
+      G3.add_nodes_from(nodes, {group:0});
+
+      G3.add_edges_from(edges);
+
+      var color = d3.scale.category20();
+      jsnx.draw(G3, {
+          element: '#chart3',
+          layout_attr: {
+              charge: -120,
+              linkDistance: 20
+          },
+          node_attr: {
+              r: 5,
+              title: function(d) { return d.label;}
+          },
+          node_style: {
+              fill: function(d) {
+                  console.log(d);
+                  return color(d.data.group); 
+              },
+              stroke: 'none'
+          },
+          edge_style: {
+              stroke: '#999'
+          }
+      }, true);
+    });
   });
